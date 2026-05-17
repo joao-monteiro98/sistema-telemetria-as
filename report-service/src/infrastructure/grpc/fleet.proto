@@ -1,0 +1,23 @@
+syntax = "proto3";
+
+package fleet;
+
+message VehicleRequest {
+  string correlationId = 1;
+}
+
+message VehicleMessage {
+  string id = 1;
+  string licensePlate = 2;
+  string brand = 3;
+  int32 currentSpeed = 4;
+  string status = 5;
+}
+
+message VehicleListResponse {
+  repeated VehicleMessage vehicles = 1;
+}
+
+service VehicleService {
+  rpc GetVehicles (VehicleRequest) returns (VehicleListResponse);
+}

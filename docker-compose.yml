@@ -1,0 +1,89 @@
+version: '3.8'
+
+services:
+  # Base de Dados do Fleet Service (PostgreSQL)
+  fleet-db:
+    image: postgres:15-alpine
+    container_name: fleet-db
+    restart: always
+    environment:
+      POSTGRES_USER: fleet_user
+      POSTGRES_PASSWORD: fleet_pass
+      POSTGRES_DB: fleet_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - fleet-db-data:/var/lib/postgresql/data
+
+  # Base de Dados do Report Service (MongoDB)
+  report-db:
+    image: mongo:6
+    container_name: report-db
+    restart: always
+    ports:
+      - "27017:27017"
+    volumes:
+      - report-db-data:/data/db
+
+  # Message Broker (RabbitMQ com painel de gestão)
+  rabbitmq:
+    image: rabbitmq:3-management-alpine
+    container_name: rabbitmq
+    restart: always
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+
+  # Serviço de Gestão de Frota (Fleet Service)
+  fleet-service:
+    build:
+      context: ./fleet-service
+      dockerfile: Dockerfile
+    container_name: fleet-service
+    restart: always
+    ports:
+      - "3001:3001"
+      - "50051:50051"
+    environment:
+      DATABASE_URL: "postgresql://fleet_user:fleet_pass@fleet-db:5432/fleet_db"
+      RABBITMQ_URL: "amqp://rabbitmq:5672"
+      PORT: 3001
+      GRPC_PORT: 50051
+    depends_on:
+      - fleet-db
+      - rabbitmq
+
+  # Serviço de Criação de Relatórios (Report Service)
+  report-service:
+    build:
+      context: ./report-service
+      dockerfile: Dockerfile
+    container_name: report-service
+    restart: always
+    ports:
+      - "3002:3002"
+    environment:
+      MONGODB_URI: "mongodb://report-db:27017/report_db"
+      RABBITMQ_URL: "amqp://rabbitmq:5672"
+      FLEET_GRPC_HOST: "fleet-service:50051"
+      PORT: 3002
+    depends_on:
+      - report-db
+      - rabbitmq
+      - fleet-service
+
+  # Serviço de Notificações e Auditoria (Notification Service)
+  notification-service:
+    build:
+      context: ./notification-service
+      dockerfile: Dockerfile
+    container_name: notification-service
+    restart: always
+    environment:
+      RABBITMQ_URL: "amqp://rabbitmq:5672"
+    depends_on:
+      - rabbitmq
+
+volumes:
+  fleet-db-data:
+  report-db-data:
