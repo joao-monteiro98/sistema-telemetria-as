@@ -1,0 +1,168 @@
+{
+	"info": {
+		"_postman_id": "a9a3b6f2-bf72-4d2c-851c-8e4bc3927694",
+		"name": "Sistema de Telemetria - Fase 3",
+		"description": "Coleção de testes para o Sistema de Telemetria e Gestão de Frota (Fase 3 - Microserviços).",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "Fleet Service (Porta 3001)",
+			"item": [
+				{
+					"name": "Registar Veículo - Sucesso (Saga Commit)",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							},
+							{
+								"key": "Authorization",
+								"value": "super-secret-token-fase1",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"id\": \"v-sucesso\",\n  \"licensePlate\": \"AA-00-OK\",\n  \"brand\": \"Tesla\",\n  \"currentSpeed\": 60\n}"
+						},
+						"url": {
+							"raw": "http://localhost:3001/api/vehicles",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "3001",
+							"path": [
+								"api",
+								"vehicles"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Registar Veículo - Falha (Saga Rollback)",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							},
+							{
+								"key": "Authorization",
+								"value": "super-secret-token-fase1",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"id\": \"v-falha\",\n  \"licensePlate\": \"XX-99-ERR\",\n  \"brand\": \"FAIL\",\n  \"currentSpeed\": 0\n}"
+						},
+						"url": {
+							"raw": "http://localhost:3001/api/vehicles",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "3001",
+							"path": [
+								"api",
+								"vehicles"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Obter Todos os Veículos",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "super-secret-token-fase1",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "http://localhost:3001/api/vehicles",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "3001",
+							"path": [
+								"api",
+								"vehicles"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Report Service (Porta 3002)",
+			"item": [
+				{
+					"name": "Solicitar Geração de Relatório",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"vehicleId\": \"v-sucesso\"\n}"
+						},
+						"url": {
+							"raw": "http://localhost:3002/api/reports/generate",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "3002",
+							"path": [
+								"api",
+								"reports",
+								"generate"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Consultar Estado do Relatório (Job Status)",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:3002/api/reports/substitua-com-o-seu-job-id",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "3002",
+							"path": [
+								"api",
+								"reports",
+								"substitua-com-o-seu-job-id"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		}
+	]
+}
