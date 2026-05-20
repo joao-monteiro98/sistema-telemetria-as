@@ -70,7 +70,7 @@ graph TD
 * **Data:** 28-04-2026
 * **Estado:** Aceite
 * **Contexto:** É necessário estruturar o sistema de forma a que a lógica de telemetria seja independente da persistência, permitindo a evolução para microserviços na Fase 3.
-* **Decisão:** Utilizar o padrão Hexagonal com Inversão de Dependência. O Core não importa nada da infraestrutura; a infraestrutura é que implementa os Portos do Core.
+* **Decisão:** Utilizar o padrão Hexagonal com Inversão de Dependência. O Core não importa nada da infraestrutura; a infraestrutura é que implementa os Portos do Core..
 * **Consequências:**
   * **Ganhos:** Elevada testabilidade e facilidade em trocar a base de dados no futuro.
   * **Perdas:** Maior verbosidade inicial (mais ficheiros e classes de interface).
