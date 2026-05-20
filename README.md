@@ -1,4 +1,4 @@
-# Projeto de Arquitetura de Software - Fase 1: Monólito Modular
+# Projeto de Arquitetura de Software - Fase 2
 
 **Mestrado em Informática Aplicada** **Tema de Negócio:** Sistema de Telemetria e Gestão de Frota  
 **Objetivo da Fase:** "Limpar a Casa" - Organização, Abstração e Inversão de Dependência.
