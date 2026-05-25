@@ -116,6 +116,48 @@ class PostgresVehicleRepo extends IVehicleRepository {
             status: row.status
         });
     }
+
+    async update(vehicle) {
+        const query = `
+            UPDATE vehicles 
+            SET license_plate = $2, brand = $3, current_speed = $4, status = $5
+            WHERE id = $1
+            RETURNING *;
+        `;
+        const values = [
+            vehicle.id,
+            vehicle.licensePlate,
+            vehicle.brand,
+            vehicle.currentSpeed,
+            vehicle.status
+        ];
+
+        const res = await this.pool.query(query, values);
+        if (res.rows.length === 0) return null;
+        
+        const row = res.rows[0];
+        return new Vehicle({
+            id: row.id,
+            licensePlate: row.license_plate,
+            brand: row.brand,
+            currentSpeed: row.current_speed,
+            status: row.status
+        });
+    }
+
+    async delete(id) {
+        const res = await this.pool.query('DELETE FROM vehicles WHERE id = $1 RETURNING *', [id]);
+        if (res.rows.length === 0) return null;
+        
+        const row = res.rows[0];
+        return new Vehicle({
+            id: row.id,
+            licensePlate: row.license_plate,
+            brand: row.brand,
+            currentSpeed: row.current_speed,
+            status: row.status
+        });
+    }
 }
 
 module.exports = PostgresVehicleRepo;

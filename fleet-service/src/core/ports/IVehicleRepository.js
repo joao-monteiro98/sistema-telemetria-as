@@ -16,6 +16,14 @@ class IVehicleRepository {
     async updateStatus(id, status) {
         throw new Error("O método 'updateStatus' tem de ser implementado.");
     }
+
+    async update(vehicle) {
+        throw new Error("O método 'update' tem de ser implementado.");
+    }
+
+    async delete(id) {
+        throw new Error("O método 'delete' tem de ser implementado.");
+    }
 }
 
 module.exports = IVehicleRepository;

@@ -48,6 +48,49 @@ class FleetService {
         this.logger.error(`🔄 Saga Rollback: Falha na configuração do veículo ${vehicleId}. Motivo: ${errorMsg}. Atualizar para CANCELLED.`, correlationId);
         await this.vehicleRepository.updateStatus(vehicleId, 'CANCELLED');
     }
+
+    async updateVehicle(id, vehicleData, correlationId) {
+        const existing = await this.vehicleRepository.findById(id);
+        if (!existing) {
+            this.logger.error(`Tentativa de atualizar veículo inexistente: ${id}`, correlationId);
+            return null;
+        }
+
+        const updatedVehicle = new Vehicle({
+            id: existing.id,
+            licensePlate: vehicleData.licensePlate !== undefined ? vehicleData.licensePlate : existing.licensePlate,
+            brand: vehicleData.brand !== undefined ? vehicleData.brand : existing.brand,
+            currentSpeed: vehicleData.currentSpeed !== undefined ? vehicleData.currentSpeed : existing.currentSpeed,
+            status: vehicleData.status !== undefined ? vehicleData.status : existing.status
+        });
+
+        const saved = await this.vehicleRepository.update(updatedVehicle);
+        this.logger.info(`🚗 Veículo ${id} atualizado na base de dados.`, correlationId);
+
+        this.eventBus.publish('VehicleUpdated', {
+            id: saved.id,
+            licensePlate: saved.licensePlate,
+            brand: saved.brand,
+            currentSpeed: saved.currentSpeed,
+            status: saved.status
+        }, correlationId);
+
+        return saved;
+    }
+
+    async deleteVehicle(id, correlationId) {
+        const deleted = await this.vehicleRepository.delete(id);
+        if (!deleted) {
+            this.logger.error(`Tentativa de remover veículo inexistente: ${id}`, correlationId);
+            return null;
+        }
+
+        this.logger.info(`🚗 Veículo ${id} removido da base de dados.`, correlationId);
+
+        this.eventBus.publish('VehicleDeleted', { id }, correlationId);
+
+        return deleted;
+    }
 }
 
 module.exports = FleetService;
