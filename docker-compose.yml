@@ -81,8 +81,25 @@ services:
     restart: always
     environment:
       RABBITMQ_URL: "amqp://rabbitmq:5672"
+      SSE_PORT: 3003
+    ports:
+      - "3003:3003"
     depends_on:
       - rabbitmq
+
+  # Interface de Utilizador (Frontend Dashboard)
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: frontend
+    restart: always
+    ports:
+      - "3000:3000"
+    depends_on:
+      - fleet-service
+      - report-service
+      - notification-service
 
 volumes:
   fleet-db-data:
