@@ -3,21 +3,33 @@
 const ILogger = require('../../core/ports/ILogger');
 
 class ConsoleLogger extends ILogger {
+    constructor() {
+        super();
+        this.listeners = [];
+    }
+
+    onLog(callback) {
+        this.listeners.push(callback);
+    }
+
     _format(level, message, correlationId) {
         const timestamp = new Date().toISOString();
         return `[${timestamp}] [${level}] [CorrelationID: ${correlationId}] ${message}`;
     }
 
     info(message, correlationId = 'N/A') {
-        console.info(this._format('INFO', message, correlationId));
+        const formatted = this._format('INFO', message, correlationId);
+        console.info(formatted);
+        this.listeners.forEach(cb => cb({ level: 'INFO', message, correlationId, formatted }));
     }
 
     error(message, correlationId = 'N/A', errorObj = null) {
-        let fullMessage = this._format('ERROR', message, correlationId);
+        let formatted = this._format('ERROR', message, correlationId);
         if (errorObj && errorObj.stack) {
-            fullMessage += `\nStack Trace: ${errorObj.stack}`;
+            formatted += `\nStack Trace: ${errorObj.stack}`;
         }
-        console.error(fullMessage);
+        console.error(formatted);
+        this.listeners.forEach(cb => cb({ level: 'ERROR', message, correlationId, formatted }));
     }
 }
 
