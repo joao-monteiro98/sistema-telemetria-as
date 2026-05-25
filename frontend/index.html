@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="pt-PT">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Painel de Telemetria e Gestão de Frota</title>
+    <!-- Google Fonts: Outfit -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="app-container">
+        <!-- Sidebar / Navigation -->
+        <aside class="sidebar">
+            <div class="brand">
+                <h2>Telemetria<span>JS</span></h2>
+            </div>
+            
+            <nav class="nav-menu">
+                <button class="nav-btn active" data-tab="vehicles-tab">
+                    Gerir Frota
+                </button>
+                <button class="nav-btn" data-tab="reports-tab">
+                    Relatórios (WQW)
+                </button>
+                <button class="nav-btn" data-tab="logs-tab">
+                    Consola de Eventos
+                </button>
+            </nav>
+            
+            <div class="connection-status">
+                <div class="status-title">Status dos Microserviços</div>
+                <div class="status-item" id="status-fleet">
+                    <span class="dot blinking"></span> Fleet API (3001)
+                </div>
+                <div class="status-item" id="status-reports">
+                    <span class="dot blinking"></span> Reports API (3002)
+                </div>
+                <div class="status-item" id="status-events">
+                    <span class="dot blinking"></span> Event Stream (3003)
+                </div>
+            </div>
+        </aside>
+
+        <!-- Main Content Area -->
+        <main class="main-content">
+            <header class="top-header">
+                <h1>Painel de Controlo da Frota</h1>
+                <div class="auth-badge">
+                    Token Autorizado
+                </div>
+            </header>
+
+            <!-- Quick Stats -->
+            <section class="stats-section">
+                <div class="stat-card">
+                    <div class="stat-info">
+                        <span class="stat-label">Total Veículos</span>
+                        <h3 id="stat-total-vehicles">0</h3>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-info">
+                        <span class="stat-label">Veículos Ativos</span>
+                        <h3 id="stat-active-vehicles">0</h3>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-info">
+                        <span class="stat-label">Relatórios Gerados</span>
+                        <h3 id="stat-total-reports">0</h3>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-info">
+                        <span class="stat-label">Erros na Saga</span>
+                        <h3 id="stat-saga-errors" class="danger-text">0</h3>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Tab: Vehicles -->
+            <div class="tab-panel active" id="vehicles-tab">
+                <div class="panel-header">
+                    <h2>Gestão de Veículos</h2>
+                    <button class="btn btn-primary" id="btn-open-add-modal">+ Registar Veículo</button>
+                </div>
+
+                <div class="vehicles-grid" id="vehicles-grid">
+                    <!-- Cards will be injected dynamically -->
+                    <div class="empty-state">
+                        <p>Nenhum veículo registado no sistema. Clique no botão acima para adicionar.</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tab: Reports -->
+            <div class="tab-panel" id="reports-tab">
+                <div class="panel-header">
+                    <h2>Geração de Relatórios (Web-Queue-Worker)</h2>
+                    <div class="report-trigger-box">
+                        <select id="report-vehicle-select" class="form-input">
+                            <option value="">Selecione um veículo...</option>
+                            <option value="FAIL">SIMULAR FALHA (Marca 'FAIL')</option>
+                        </select>
+                        <button class="btn btn-secondary" id="btn-trigger-report">Gerar Relatório</button>
+                    </div>
+                </div>
+
+                <div class="reports-section">
+                    <h3>Fila de Relatórios Assíncronos (Jobs em MongoDB)</h3>
+                    <div class="table-container">
+                        <table class="jobs-table">
+                            <thead>
+                                <tr>
+                                    <th>Job ID</th>
+                                    <th>ID Veículo</th>
+                                    <th>Data de Criação</th>
+                                    <th>Última Atualização</th>
+                                    <th>Status</th>
+                                    <th>Ações / Resultados</th>
+                                </tr>
+                            </thead>
+                            <tbody id="jobs-table-body">
+                                <tr>
+                                    <td colspan="6" class="table-empty">Nenhum job de relatório submetido.</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tab: Event Logs -->
+            <div class="tab-panel" id="logs-tab">
+                <div class="panel-header">
+                    <h2>Consola de Eventos & Auditoria (RabbitMQ -> SSE Stream)</h2>
+                    <button class="btn btn-outline" id="btn-clear-logs">Limpar Consola</button>
+                </div>
+                <div class="terminal-container">
+                    <div class="terminal-header">
+                        <span class="terminal-dot red"></span>
+                        <span class="terminal-dot yellow"></span>
+                        <span class="terminal-dot green"></span>
+                        <span class="terminal-title">live_notification_stream.log</span>
+                    </div>
+                    <div class="terminal-body" id="terminal-body">
+                        <div class="log-line system">[SISTEMA] Aguardando ligação ao fluxo SSE do Notification Service...</div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Modal: Add/Edit Vehicle -->
+    <div class="modal-overlay" id="vehicle-modal">
+        <div class="modal-card">
+            <div class="modal-header">
+                <h3 id="modal-title">Registar Veículo</h3>
+                <button class="close-btn" id="btn-close-modal">&times;</button>
+            </div>
+            <form id="vehicle-form">
+                <div class="form-group">
+                    <label for="vehicle-id">ID do Veículo (ex: v123)</label>
+                    <input type="text" id="vehicle-id" required placeholder="Identificador único">
+                </div>
+                <div class="form-group">
+                    <label for="vehicle-plate">Matrícula (ex: AA-00-XX)</label>
+                    <input type="text" id="vehicle-plate" required placeholder="Matrícula válida">
+                </div>
+                <div class="form-group">
+                    <label for="vehicle-brand">Marca (ex: Tesla, BMW)</label>
+                    <input type="text" id="vehicle-brand" required placeholder="Marca do fabricante">
+                    <small class="form-hint">Nota: Escreva 'FAIL' para testar a Saga compensatória de rollback.</small>
+                </div>
+                <div class="form-group">
+                    <label for="vehicle-speed">Velocidade Atual (km/h)</label>
+                    <input type="number" id="vehicle-speed" min="0" required placeholder="Velocidade atual">
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline" id="btn-cancel-modal">Cancelar</button>
+                    <button type="submit" class="btn btn-primary" id="btn-submit-form">Guardar Veículo</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
